@@ -17,6 +17,7 @@ import companyRoutes from './routes/company.routes.js';
 import searchRoutes from './routes/search.routes.js';
 import inventoryRoutes from './routes/inventory.routes.js';
 import emailRoutes from './routes/email.routes.js';
+import quoteRoutes from './routes/quote.routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -64,6 +65,7 @@ app.use('/api/companies', companyRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/quotes', quoteRoutes);
 
 // Error handling
 app.use(notFound);

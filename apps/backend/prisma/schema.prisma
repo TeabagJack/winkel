@@ -518,6 +518,7 @@ model Quote {
   status        QuoteStatus   @default(DRAFT)
 
   items         QuoteItem[]
+  history       QuoteHistory[]
 
   // Pricing (filled after quote is created by admin)
   subtotal      Decimal?      @db.Decimal(12, 2)
@@ -561,6 +562,35 @@ model QuoteItem {
 
   @@index([quoteId])
   @@map("quote_items")
+}
+
+enum QuoteAction {
+  CREATED
+  SUBMITTED
+  QUOTED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED_TO_ORDER
+  UPDATED
+}
+
+model QuoteHistory {
+  id          String      @id @default(cuid())
+  quoteId     String
+  quote       Quote       @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  action      QuoteAction
+  userId      String?
+  userName    String?     // Denormalized for history
+  notes       String?
+  metadata    Json?       // Additional context (e.g., price changes, items modified)
+
+  createdAt   DateTime    @default(now())
+
+  @@index([quoteId])
+  @@index([createdAt])
+  @@map("quote_history")
 }
 
 // ============================================================================

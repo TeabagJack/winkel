@@ -17,6 +17,8 @@ import CustomersPage from './pages/admin/Customers';
 import CustomerDetailsPage from './pages/admin/CustomerDetails';
 import InventoryAlertsPage from './pages/admin/InventoryAlerts';
 import EmailPreferencesPage from './pages/admin/EmailPreferences';
+import QuotesPage from './pages/admin/Quotes';
+import QuoteDetailsPage from './pages/admin/QuoteDetails';
 
 // Protected Route Component
 function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: string }) {
@@ -77,15 +79,8 @@ function App() {
           <Route path="customers/:id" element={<CustomerDetailsPage />} />
           <Route path="inventory" element={<InventoryAlertsPage />} />
           <Route path="email-preferences" element={<EmailPreferencesPage />} />
-          <Route
-            path="quotes"
-            element={
-              <div className="p-8">
-                <h1 className="text-3xl font-bold">Quotes</h1>
-                <p className="text-muted-foreground mt-2">Coming soon...</p>
-              </div>
-            }
-          />
+          <Route path="quotes" element={<QuotesPage />} />
+          <Route path="quotes/:id" element={<QuoteDetailsPage />} />
           <Route
             path="analytics"
             element={
