@@ -26,3 +26,6 @@ export function validate(schema: ZodSchema) {
     }
   };
 }
+
+// Export alias for consistency
+export const validateRequest = validate;
