@@ -50,7 +50,18 @@ const updateCreditLimitSchema = z.object({
 });
 
 // Routes
-// Get all companies (Admin only)
+/**
+ * @route GET /api/companies
+ * @desc Get all companies with pagination, search, and filters
+ * @access Private (SUPER_ADMIN only)
+ * @queryparams {number} page - Page number (default: 1)
+ * @queryparams {number} pageSize - Items per page (default: 20)
+ * @queryparams {string} search - Search by name, legal name, email, tax ID
+ * @queryparams {string} status - Filter by status (ACTIVE, SUSPENDED, PENDING_APPROVAL, INACTIVE)
+ * @queryparams {string} sortBy - Sort field (default: createdAt)
+ * @queryparams {string} sortOrder - Sort order: asc or desc (default: desc)
+ * @returns {Object} { success, data: Company[], pagination: { page, pageSize, total, totalPages } }
+ */
 router.get(
   '/',
   authenticate,
@@ -58,14 +69,34 @@ router.get(
   asyncHandler(companyController.getCompanies.bind(companyController))
 );
 
-// Get single company
+/**
+ * @route GET /api/companies/:id
+ * @desc Get single company with users, addresses, orders, and pricing tier
+ * @access Private (Authenticated)
+ * @params {string} id - Company ID
+ * @returns {Object} { success, data: Company }
+ */
 router.get(
   '/:id',
   authenticate,
   asyncHandler(companyController.getCompany.bind(companyController))
 );
 
-// Create company (Admin only)
+/**
+ * @route POST /api/companies
+ * @desc Create new B2B customer company
+ * @access Private (SUPER_ADMIN only)
+ * @body {string} name - Company name (required)
+ * @body {string} legalName - Legal name (optional)
+ * @body {string} taxId - Tax ID (optional, must be unique)
+ * @body {string} email - Email address (required)
+ * @body {string} phone - Phone number (required)
+ * @body {string} website - Website URL (optional)
+ * @body {string} paymentTerms - Payment terms: NET_30, NET_60, NET_90, IMMEDIATE (default: NET_30)
+ * @body {number} creditLimit - Credit limit (default: 0)
+ * @body {string} pricingTierId - Pricing tier ID (optional)
+ * @returns {Object} { success, data: Company, message }
+ */
 router.post(
   '/',
   authenticate,
@@ -74,7 +105,22 @@ router.post(
   asyncHandler(companyController.createCompany.bind(companyController))
 );
 
-// Update company (Admin only)
+/**
+ * @route PUT /api/companies/:id
+ * @desc Update company information
+ * @access Private (SUPER_ADMIN only)
+ * @params {string} id - Company ID
+ * @body {string} name - Company name (optional)
+ * @body {string} legalName - Legal name (optional)
+ * @body {string} taxId - Tax ID (optional, must be unique)
+ * @body {string} email - Email address (optional)
+ * @body {string} phone - Phone number (optional)
+ * @body {string} website - Website URL (optional)
+ * @body {string} paymentTerms - Payment terms (optional)
+ * @body {number} creditLimit - Credit limit (optional)
+ * @body {string} pricingTierId - Pricing tier ID (optional)
+ * @returns {Object} { success, data: Company, message }
+ */
 router.put(
   '/:id',
   authenticate,
@@ -83,7 +129,14 @@ router.put(
   asyncHandler(companyController.updateCompany.bind(companyController))
 );
 
-// Update company status (Admin only)
+/**
+ * @route PATCH /api/companies/:id/status
+ * @desc Update company status
+ * @access Private (SUPER_ADMIN only)
+ * @params {string} id - Company ID
+ * @body {string} status - New status: ACTIVE, SUSPENDED, PENDING_APPROVAL, INACTIVE
+ * @returns {Object} { success, data: Company, message }
+ */
 router.patch(
   '/:id/status',
   authenticate,
@@ -92,7 +145,14 @@ router.patch(
   asyncHandler(companyController.updateCompanyStatus.bind(companyController))
 );
 
-// Update credit limit (Admin only)
+/**
+ * @route PATCH /api/companies/:id/credit-limit
+ * @desc Update company credit limit (preserves used credit amount)
+ * @access Private (SUPER_ADMIN only)
+ * @params {string} id - Company ID
+ * @body {number} creditLimit - New credit limit
+ * @returns {Object} { success, data: Company, message }
+ */
 router.patch(
   '/:id/credit-limit',
   authenticate,
@@ -101,7 +161,13 @@ router.patch(
   asyncHandler(companyController.updateCreditLimit.bind(companyController))
 );
 
-// Delete company (Admin only)
+/**
+ * @route DELETE /api/companies/:id
+ * @desc Delete company (only if no users or orders exist)
+ * @access Private (SUPER_ADMIN only)
+ * @params {string} id - Company ID
+ * @returns {Object} { success, message }
+ */
 router.delete(
   '/:id',
   authenticate,

@@ -68,7 +68,20 @@ const updateOrderSchema = z.object({
 });
 
 // Routes
-// Get all orders (Admin only)
+/**
+ * @route GET /api/orders
+ * @desc Get all orders with pagination, search, and filters
+ * @access Private (SUPER_ADMIN only)
+ * @queryparams {number} page - Page number (default: 1)
+ * @queryparams {number} pageSize - Items per page (default: 20)
+ * @queryparams {string} search - Search by order number, customer name/email, company name
+ * @queryparams {string} status - Filter by order status (DRAFT, PENDING_APPROVAL, APPROVED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED)
+ * @queryparams {string} paymentStatus - Filter by payment status (PENDING, AUTHORIZED, PAID, PARTIALLY_PAID, FAILED, REFUNDED)
+ * @queryparams {string} companyId - Filter by company ID
+ * @queryparams {string} sortBy - Sort field (default: createdAt)
+ * @queryparams {string} sortOrder - Sort order: asc or desc (default: desc)
+ * @returns {Object} { success, data: Order[], pagination: { page, pageSize, total, totalPages } }
+ */
 router.get(
   '/',
   authenticate,
@@ -76,14 +89,28 @@ router.get(
   asyncHandler(orderController.getOrders.bind(orderController))
 );
 
-// Get single order
+/**
+ * @route GET /api/orders/:id
+ * @desc Get single order details with items, addresses, and relationships
+ * @access Private (Authenticated)
+ * @params {string} id - Order ID
+ * @returns {Object} { success, data: Order }
+ */
 router.get(
   '/:id',
   authenticate,
   asyncHandler(orderController.getOrder.bind(orderController))
 );
 
-// Update order status (Admin only)
+/**
+ * @route PATCH /api/orders/:id/status
+ * @desc Update order status and/or payment status
+ * @access Private (SUPER_ADMIN only)
+ * @params {string} id - Order ID
+ * @body {string} status - New order status (optional)
+ * @body {string} paymentStatus - New payment status (optional)
+ * @returns {Object} { success, data: Order, message }
+ */
 router.patch(
   '/:id/status',
   authenticate,
@@ -92,7 +119,23 @@ router.patch(
   asyncHandler(orderController.updateOrderStatus.bind(orderController))
 );
 
-// Create order
+/**
+ * @route POST /api/orders
+ * @desc Create new order with auto-generated order number
+ * @access Private (Authenticated)
+ * @body {string} userId - User ID
+ * @body {string} companyId - Company ID
+ * @body {string} billingAddressId - Billing address ID
+ * @body {string} shippingAddressId - Shipping address ID
+ * @body {number} subtotal - Subtotal amount
+ * @body {number} taxAmount - Tax amount (optional)
+ * @body {number} shippingAmount - Shipping amount (optional)
+ * @body {number} discountAmount - Discount amount (optional)
+ * @body {number} total - Total amount
+ * @body {string} notes - Order notes (optional)
+ * @body {Array} items - Array of order items with productId, sku, name, quantity, unitPrice, totalPrice
+ * @returns {Object} { success, data: Order, message }
+ */
 router.post(
   '/',
   authenticate,
@@ -100,7 +143,19 @@ router.post(
   asyncHandler(orderController.createOrder.bind(orderController))
 );
 
-// Update order (only draft orders)
+/**
+ * @route PUT /api/orders/:id
+ * @desc Update order (only draft orders can be updated)
+ * @access Private (Authenticated)
+ * @params {string} id - Order ID
+ * @body {number} subtotal - Subtotal amount (optional)
+ * @body {number} taxAmount - Tax amount (optional)
+ * @body {number} shippingAmount - Shipping amount (optional)
+ * @body {number} discountAmount - Discount amount (optional)
+ * @body {number} total - Total amount (optional)
+ * @body {string} notes - Order notes (optional)
+ * @returns {Object} { success, data: Order, message }
+ */
 router.put(
   '/:id',
   authenticate,
@@ -108,7 +163,13 @@ router.put(
   asyncHandler(orderController.updateOrder.bind(orderController))
 );
 
-// Delete order (Admin only, only draft orders)
+/**
+ * @route DELETE /api/orders/:id
+ * @desc Delete order (only draft orders can be deleted)
+ * @access Private (SUPER_ADMIN only)
+ * @params {string} id - Order ID
+ * @returns {Object} { success, message }
+ */
 router.delete(
   '/:id',
   authenticate,
