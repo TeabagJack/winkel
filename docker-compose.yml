@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: winkel-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: winkel
+      POSTGRES_PASSWORD: winkel_dev_password
+      POSTGRES_DB: winkel_b2b
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U winkel']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    container_name: winkel-dragonfly
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    ulimits:
+      memlock: -1
+    volumes:
+      - dragonfly_data:/data
+    command: >
+      --requirepass winkel_redis_password
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  dragonfly_data:
+    driver: local
+
+networks:
+  default:
+    name: winkel-network
