@@ -4,9 +4,11 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 import { PrismaClient } from '@prisma/client';
 import { logger } from './utils/logger.js';
 import { errorHandler, notFound } from './middleware/error-handler.js';
+import { swaggerSpec } from './config/swagger.js';
 import authRoutes from './routes/auth.routes.js';
 import productRoutes from './routes/product.routes.js';
 import categoryRoutes from './routes/category.routes.js';
@@ -36,6 +38,18 @@ app.use(morgan('dev'));
 // Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'B2B E-commerce API Docs',
+}));
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
 });
 
 // API routes
