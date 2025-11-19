@@ -8,6 +8,8 @@ import { PrismaClient } from '@prisma/client';
 import { logger } from './utils/logger.js';
 import { errorHandler, notFound } from './middleware/error-handler.js';
 import authRoutes from './routes/auth.routes.js';
+import productRoutes from './routes/product.routes.js';
+import categoryRoutes from './routes/category.routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -36,6 +38,8 @@ app.get('/health', (_req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Error handling
 app.use(notFound);
