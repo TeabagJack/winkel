@@ -42,11 +42,13 @@ model User {
   company       Company?    @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   // Relationships
-  carts         Cart[]
-  orders        Order[]
-  quotes        Quote[]
-  approvals     Approval[]
-  searchQueries SearchQuery[]
+  carts           Cart[]
+  orders          Order[]
+  quotes          Quote[]
+  approvals       Approval[]
+  searchQueries   SearchQuery[]
+  stockMovements  StockMovement[]
+  emailPreference EmailPreference?
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -216,6 +218,8 @@ model Product {
   cartItems       CartItem[]
   orderItems      OrderItem[]
   quoteItems      QuoteItem[]
+  inventoryAlerts InventoryAlert[]
+  stockMovements  StockMovement[]
 
   isActive        Boolean         @default(true)
   isFeatured      Boolean         @default(false)
@@ -619,4 +623,133 @@ model SearchQuery {
   @@index([userId])
   @@index([createdAt])
   @@map("search_queries")
+}
+
+// ============================================================================
+// Inventory Management
+// ============================================================================
+
+enum AlertType {
+  LOW_STOCK
+  OUT_OF_STOCK
+  REORDER_POINT
+}
+
+model InventoryAlert {
+  id            String    @id @default(cuid())
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  alertType     AlertType
+  threshold     Int
+  currentValue  Int
+  isResolved    Boolean   @default(false)
+
+  createdAt     DateTime  @default(now())
+  resolvedAt    DateTime?
+
+  @@index([productId])
+  @@index([isResolved])
+  @@index([createdAt])
+  @@map("inventory_alerts")
+}
+
+enum MovementType {
+  ADJUSTMENT
+  SALE
+  RETURN
+  RESTOCK
+  TRANSFER
+  INITIAL
+}
+
+model StockMovement {
+  id          String       @id @default(cuid())
+  productId   String
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  type        MovementType
+  quantity    Int
+  before      Int
+  after       Int
+  reason      String?
+
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime     @default(now())
+
+  @@index([productId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+// ============================================================================
+// Email & Notifications
+// ============================================================================
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  subject     String
+  htmlBody    String   @db.Text
+  textBody    String   @db.Text
+  variables   Json?
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  emailQueues EmailQueue[]
+
+  @@map("email_templates")
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+model EmailQueue {
+  id          String      @id @default(cuid())
+  to          String
+  subject     String
+  htmlBody    String      @db.Text
+  textBody    String?     @db.Text
+
+  templateId  String?
+  template    EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  status      EmailStatus @default(PENDING)
+  attempts    Int         @default(0)
+  maxAttempts Int         @default(3)
+  error       String?
+
+  sentAt      DateTime?
+  createdAt   DateTime    @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("email_queue")
+}
+
+model EmailPreference {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orderConfirmation   Boolean  @default(true)
+  orderShipped        Boolean  @default(true)
+  orderDelivered      Boolean  @default(true)
+  lowStockAlert       Boolean  @default(true)
+  promotions          Boolean  @default(false)
+  newsletter          Boolean  @default(false)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("email_preferences")
 }
