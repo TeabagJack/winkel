@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ImageUpload } from '@/components/ui/image-upload';
+import { ImageGallery } from '@/components/ui/image-gallery';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 
@@ -102,6 +104,76 @@ export default function ProductForm() {
         title: 'Error',
         description: error.response?.data?.message || 'Failed to save product',
       });
+    },
+  });
+
+  // Image upload mutation
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      return await api.post(`/products/${id}/images`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product', id] });
+      toast({
+        title: 'Image uploaded',
+        description: 'Product image uploaded successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Upload failed',
+        description: error.response?.data?.message || 'Failed to upload image',
+      });
+      throw error;
+    },
+  });
+
+  // Delete image mutation
+  const deleteImageMutation = useMutation({
+    mutationFn: async (imageId: string) => {
+      return await api.delete(`/products/${id}/images/${imageId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product', id] });
+      toast({
+        title: 'Image deleted',
+        description: 'Product image deleted successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Delete failed',
+        description: error.response?.data?.message || 'Failed to delete image',
+      });
+      throw error;
+    },
+  });
+
+  // Set primary image mutation
+  const setPrimaryImageMutation = useMutation({
+    mutationFn: async (imageId: string) => {
+      return await api.patch(`/products/${id}/images/${imageId}/primary`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product', id] });
+      toast({
+        title: 'Primary image updated',
+        description: 'Primary image set successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Update failed',
+        description: error.response?.data?.message || 'Failed to set primary image',
+      });
+      throw error;
     },
   });
 
@@ -290,6 +362,45 @@ export default function ProductForm() {
             </div>
           </CardContent>
         </Card>
+
+        {isEdit && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Images</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label>Upload New Image</Label>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Upload product images. The first image will be set as primary automatically.
+                </p>
+                <ImageUpload
+                  onUpload={async (file) => {
+                    await uploadImageMutation.mutateAsync(file);
+                  }}
+                />
+              </div>
+
+              {product?.images && product.images.length > 0 && (
+                <div>
+                  <Label>Image Gallery</Label>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Click the star icon to set an image as primary. Primary images are displayed first.
+                  </p>
+                  <ImageGallery
+                    images={product.images}
+                    onDelete={async (imageId) => {
+                      await deleteImageMutation.mutateAsync(imageId);
+                    }}
+                    onSetPrimary={async (imageId) => {
+                      await setPrimaryImageMutation.mutateAsync(imageId);
+                    }}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex items-center justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => navigate('/admin/products')}>

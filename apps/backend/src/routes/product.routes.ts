@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ProductController } from '../controllers/product.controller.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { uploadSingleImage } from '../middleware/upload.js';
 
 const router = Router();
 const productController = new ProductController();
@@ -101,6 +102,46 @@ router.post(
   '/bulk/inventory',
   validate(bulkInventorySchema),
   asyncHandler(productController.bulkUpdateInventory.bind(productController))
+);
+
+/**
+ * @route POST /api/products/:id/images
+ * @desc Upload a product image
+ * @access Private (SUPER_ADMIN only)
+ * @param {string} id - Product ID
+ * @body {File} image - Image file (multipart/form-data)
+ * @returns {Object} { success: true, message, data: ProductImage }
+ */
+router.post(
+  '/:id/images',
+  uploadSingleImage,
+  asyncHandler(productController.uploadImage.bind(productController))
+);
+
+/**
+ * @route DELETE /api/products/:id/images/:imageId
+ * @desc Delete a product image
+ * @access Private (SUPER_ADMIN only)
+ * @param {string} id - Product ID
+ * @param {string} imageId - Image ID
+ * @returns {Object} { success: true, message }
+ */
+router.delete(
+  '/:id/images/:imageId',
+  asyncHandler(productController.deleteImage.bind(productController))
+);
+
+/**
+ * @route PATCH /api/products/:id/images/:imageId/primary
+ * @desc Set an image as the primary product image
+ * @access Private (SUPER_ADMIN only)
+ * @param {string} id - Product ID
+ * @param {string} imageId - Image ID
+ * @returns {Object} { success: true, message, data: ProductImage }
+ */
+router.patch(
+  '/:id/images/:imageId/primary',
+  asyncHandler(productController.setPrimaryImage.bind(productController))
 );
 
 export default router;

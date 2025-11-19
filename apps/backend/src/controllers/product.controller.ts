@@ -275,7 +275,7 @@ export class ProductController {
     const { updates } = req.body; // Array of { id, quantity }
 
     const results = await Promise.all(
-      updates.map(async (update: { id: string; quantity: number }) => {
+      updates.map(async (update: { id, string; quantity: number }) => {
         return prisma.product.update({
           where: { id: update.id },
           data: {
@@ -289,6 +289,164 @@ export class ProductController {
     res.json({
       message: 'Inventory updated successfully',
       data: results,
+    });
+  }
+
+  // Upload product image
+  async uploadImage(req: AuthRequest, res: Response): Promise<void> {
+    const { id } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      throw new AppError(400, 'No image file provided');
+    }
+
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new AppError(404, 'Product not found');
+    }
+
+    // Process image (resize and optimize)
+    const { ImageProcessor } = await import('../utils/image-processor.js');
+    const processedImages = await ImageProcessor.processImage(file.path, file.filename);
+
+    // Get the original image URL
+    const originalImage = processedImages.find((img) => img.size === 'original');
+    if (!originalImage) {
+      throw new AppError(500, 'Failed to process image');
+    }
+
+    // Get current image count to set sort order
+    const imageCount = await prisma.productImage.count({
+      where: { productId: id },
+    });
+
+    // Create image record in database
+    const productImage = await prisma.productImage.create({
+      data: {
+        productId: id,
+        url: originalImage.url,
+        altText: product.name,
+        sortOrder: imageCount,
+        isPrimary: imageCount === 0, // First image is primary
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Image uploaded successfully',
+      data: productImage,
+    });
+  }
+
+  // Delete product image
+  async deleteImage(req: AuthRequest, res: Response): Promise<void> {
+    const { id, imageId } = req.params;
+
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new AppError(404, 'Product not found');
+    }
+
+    // Check if image exists
+    const image = await prisma.productImage.findUnique({
+      where: { id: imageId },
+    });
+
+    if (!image) {
+      throw new AppError(404, 'Image not found');
+    }
+
+    if (image.productId !== id) {
+      throw new AppError(400, 'Image does not belong to this product');
+    }
+
+    // Delete image files from disk
+    const { ImageProcessor } = await import('../utils/image-processor.js');
+    const filename = image.url.split('/').pop();
+    if (filename) {
+      await ImageProcessor.deleteImage(filename);
+    }
+
+    // Delete image record from database
+    await prisma.productImage.delete({
+      where: { id: imageId },
+    });
+
+    // If this was the primary image, set another image as primary
+    if (image.isPrimary) {
+      const nextImage = await prisma.productImage.findFirst({
+        where: { productId: id },
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      if (nextImage) {
+        await prisma.productImage.update({
+          where: { id: nextImage.id },
+          data: { isPrimary: true },
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Image deleted successfully',
+    });
+  }
+
+  // Set primary image
+  async setPrimaryImage(req: AuthRequest, res: Response): Promise<void> {
+    const { id, imageId } = req.params;
+
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new AppError(404, 'Product not found');
+    }
+
+    // Check if image exists and belongs to product
+    const image = await prisma.productImage.findUnique({
+      where: { id: imageId },
+    });
+
+    if (!image) {
+      throw new AppError(404, 'Image not found');
+    }
+
+    if (image.productId !== id) {
+      throw new AppError(400, 'Image does not belong to this product');
+    }
+
+    // Unset current primary image
+    await prisma.productImage.updateMany({
+      where: {
+        productId: id,
+        isPrimary: true,
+      },
+      data: { isPrimary: false },
+    });
+
+    // Set new primary image
+    const updatedImage = await prisma.productImage.update({
+      where: { id: imageId },
+      data: { isPrimary: true },
+    });
+
+    res.json({
+      success: true,
+      message: 'Primary image set successfully',
+      data: updatedImage,
     });
   }
 }
