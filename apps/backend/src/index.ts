@@ -14,6 +14,7 @@ import productRoutes from './routes/product.routes.js';
 import categoryRoutes from './routes/category.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import companyRoutes from './routes/company.routes.js';
+import searchRoutes from './routes/search.routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +59,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/companies', companyRoutes);
+app.use('/api/search', searchRoutes);
 
 // Error handling
 app.use(notFound);

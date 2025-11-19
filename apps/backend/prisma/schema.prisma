@@ -46,6 +46,7 @@ model User {
   orders        Order[]
   quotes        Quote[]
   approvals     Approval[]
+  searchQueries SearchQuery[]
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -598,4 +599,24 @@ model Invoice {
   @@index([companyId])
   @@index([status])
   @@map("invoices")
+}
+
+// ============================================================================
+// Search & Analytics
+// ============================================================================
+
+model SearchQuery {
+  id          String    @id @default(cuid())
+  query       String
+  filters     Json?
+  results     Int       @default(0)
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([query])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("search_queries")
 }
