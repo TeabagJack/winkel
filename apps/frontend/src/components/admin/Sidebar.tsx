@@ -11,6 +11,8 @@ import {
   Tags,
   ShoppingBag,
   LogOut,
+  AlertTriangle,
+  Mail,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { Avatar } from '@/components/ui/avatar';
@@ -20,9 +22,11 @@ const navigation = [
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Categories', href: '/admin/categories', icon: Tags },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
+  { name: 'Inventory Alerts', href: '/admin/inventory', icon: AlertTriangle },
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Quotes', href: '/admin/quotes', icon: FileText },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+  { name: 'Email Preferences', href: '/admin/email-preferences', icon: Mail },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 

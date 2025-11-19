@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/auth';
 import { Toaster } from './components/ui/toaster';
+import { Toaster as SonnerToaster } from 'sonner';
 
 // Pages
 import LoginPage from './pages/Login';
@@ -14,6 +15,8 @@ import OrdersPage from './pages/admin/Orders';
 import OrderDetailsPage from './pages/admin/OrderDetails';
 import CustomersPage from './pages/admin/Customers';
 import CustomerDetailsPage from './pages/admin/CustomerDetails';
+import InventoryAlertsPage from './pages/admin/InventoryAlerts';
+import EmailPreferencesPage from './pages/admin/EmailPreferences';
 
 // Protected Route Component
 function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: string }) {
@@ -72,6 +75,8 @@ function App() {
           <Route path="orders/:id" element={<OrderDetailsPage />} />
           <Route path="customers" element={<CustomersPage />} />
           <Route path="customers/:id" element={<CustomerDetailsPage />} />
+          <Route path="inventory" element={<InventoryAlertsPage />} />
+          <Route path="email-preferences" element={<EmailPreferencesPage />} />
           <Route
             path="quotes"
             element={
@@ -147,6 +152,7 @@ function App() {
         />
       </Routes>
       <Toaster />
+      <SonnerToaster position="top-right" richColors />
     </BrowserRouter>
   );
 }
