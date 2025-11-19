@@ -8,6 +8,12 @@ import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
 import ProductsPage from './pages/admin/Products';
 import ProductForm from './pages/admin/ProductForm';
+import CategoriesPage from './pages/admin/Categories';
+import CategoryForm from './pages/admin/CategoryForm';
+import OrdersPage from './pages/admin/Orders';
+import OrderDetailsPage from './pages/admin/OrderDetails';
+import CustomersPage from './pages/admin/Customers';
+import CustomerDetailsPage from './pages/admin/CustomerDetails';
 
 // Protected Route Component
 function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: string }) {
@@ -59,33 +65,13 @@ function App() {
           <Route path="products" element={<ProductsPage />} />
           <Route path="products/new" element={<ProductForm />} />
           <Route path="products/:id" element={<ProductForm />} />
-          <Route
-            path="categories"
-            element={
-              <div className="p-8">
-                <h1 className="text-3xl font-bold">Categories</h1>
-                <p className="text-muted-foreground mt-2">Coming soon...</p>
-              </div>
-            }
-          />
-          <Route
-            path="orders"
-            element={
-              <div className="p-8">
-                <h1 className="text-3xl font-bold">Orders</h1>
-                <p className="text-muted-foreground mt-2">Coming soon...</p>
-              </div>
-            }
-          />
-          <Route
-            path="customers"
-            element={
-              <div className="p-8">
-                <h1 className="text-3xl font-bold">Customers</h1>
-                <p className="text-muted-foreground mt-2">Coming soon...</p>
-              </div>
-            }
-          />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="categories/new" element={<CategoryForm />} />
+          <Route path="categories/:id" element={<CategoryForm />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/:id" element={<OrderDetailsPage />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="customers/:id" element={<CustomerDetailsPage />} />
           <Route
             path="quotes"
             element={
